@@ -6,11 +6,9 @@ Created on Tue Feb 25 20:27:14 2020
 Student ID: 19456662
 """
 
-#First I will try to create fully fillings matrix for different sizes. We can get this number from use and print out the output
+#+First I will try to create fully fillings matrix for different sizes. We can get this number from use and print out the output
+#Make the board fill the fulls and nulls
 
-
-#def permutation(numlist):
-    
 def levelsearch(partnumber, size):
     if partnumber==1:
         return str(size)
@@ -28,17 +26,25 @@ def levelsearch(partnumber, size):
     return ','.join([i for i in k])
     
     
-def finder(parts,size):
+def fullfinder(parts,size):
     i=1
     result=list()
     while i <= parts:
         result.append(levelsearch(i,size))        
         i+=1
     result=(','.join(result)).split(',')
-    print(result)
+    return result
     
+
+def printing(board):
+    print('\n'.join([' '.join([elem for elem in row])for row in board]))
+
+def filler(size, fulls):
+    board=[['0']*n for i in range(n)]
+    printing(board)
+
 if __name__=='__main__':
     n=int(input("How big is this square, honey?"))
-    finder(int((n+1)/2),n)
-    
+    fulls=fullfinder(int((n+1)/2),n)
+    filler(n,fulls)
     
