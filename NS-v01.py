@@ -33,7 +33,8 @@ def finder(parts,size):
     result=list()
     while i <= parts:
         result.append(levelsearch(i,size))        
-        i+=1    
+        i+=1
+    result=(','.join(result)).split(',')
     print(result)
     
 if __name__=='__main__':
