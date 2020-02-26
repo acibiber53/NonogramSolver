@@ -9,7 +9,7 @@ Student ID: 19456662
 #+First I will try to create fully fillings matrix for different sizes. We can get this number from use and print out the output
 #Make the board fill the fulls and nulls
 
-BLK='\u2588'
+BLK='\u2588' # block character
 
 # This is recursive method that finds all possible line filling combinations for given size
 def levelsearch(partnumber, size):
@@ -45,15 +45,16 @@ def printing(board):
 
 
 # This method only fills the full lines at the beginning.
-def fillfull(board, fulls, blocks, total):
+def fillfull(board, fulls, blocks, total, unfinished):
 
     for i in range(n):
         if blocks[i] in fulls:
+            unfinished.remove(i)
             parting=list(fulls[fulls.index(blocks[i])])
             indexc=0
             for item in parting:
                 for j in range(int(item)):
-                    board[i][indexc]=BLK # block character
+                    board[i][indexc]=BLK 
                     indexc+=1
                 if indexc<n:
                     board[i][indexc]='X'
@@ -63,6 +64,7 @@ def fillfull(board, fulls, blocks, total):
     while i<limi:
         col=i-n
         if blocks[i] in fulls:
+            unfinished.remove(i)
             parting=list(fulls[fulls.index(blocks[i])])
             indexr=0
             for item in parting:
@@ -76,20 +78,69 @@ def fillfull(board, fulls, blocks, total):
     t=0
     for row in board:
         t+=row.count(BLK)
-    print(t)
+    #print(t)
     total-=t
-    printing(board)
-    return board, total
+    
+    return board, total, unfinished
 
+def fillhalf(board, blocks, unfinished, size):
+    halftotal=list()
+    for i in unfinished:
+        tmp=[int(i) for i in list(blocks[i])]
+        ss=sum(tmp)+(len(tmp)-1)
+        halftotal.append([ss,len(tmp),size-ss]) # totallength, howmanyparts, size-totallength
+    
+    for i in range(len(unfinished)):
+        truindex=unfinished[i]
+        if truindex<size: #rows
+            if halftotal[i][0]>halftotal[i][2]: # check if the parts total are bigger than the size-parts_total, if yes we can still predict some tiles
+                tmp=[int(i) for i in list(blocks[truindex])] #get parts
+                lt=len(tmp)
+                writeindex=0
+                for j in range(lt): # iterate through the parts
+                    item=tmp[j]
+                    tindex=writeindex+item-1
+                    diff=item-halftotal[i][2] # how many blocks we write
+                    while diff > 0:
+                        board[truindex][tindex]=BLK
+                        diff-=1
+                        tindex-=1
+                    writeindex=writeindex+item+1
+        else:  #columns
+            col=truindex-size
+            if halftotal[i][0]>halftotal[i][2]: # check if the parts total are bigger than the size-parts_total, if yes we can still predict some tiles
+                tmp=[int(i) for i in list(blocks[truindex])] #get parts
+                lt=len(tmp)
+                writeindex=0
+                for j in range(lt): # iterate through the parts
+                    item=tmp[j]
+                    tindex=writeindex+item-1
+                    diff=item-halftotal[i][2] # how many blocks we write
+                    while diff > 0:
+                        board[tindex][col]=BLK
+                        diff-=1
+                        tindex-=1
+                    writeindex=writeindex+item+1
+                    
+    return board, unfinished
 
 # This method will slowly fill the board
 def filler(size, blocks, total):
     fulls=fullfinder(int((size+1)/2),size)
+    unfinished=[i for i in range(size*2)]
     
     board=[['_']*n for i in range(n)]
 
-    board, total=fillfull(board, fulls, blocks, total)
+    board, total, unfinished=fillfull(board, fulls, blocks, total, unfinished)
     
+    board, unfinished=fillhalf(board, blocks, unfinished, size)
+    printing(board)
+    #main check while
+#    while total > 0:
+        
+#        for i in unfinished:
+            #check if it is already finished
+            
     
 
 # This method gets input from a txt file. First line is board size n . Next n line row values, next n line column values.
