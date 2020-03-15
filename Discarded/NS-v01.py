@@ -1,13 +1,11 @@
 # -*- coding: utf-8 -*-
 """
-Created on Tue Feb 25 20:27:14 2020
+Today is March 16th, 2020. I discard this version of nonogram solver. I used a recursive method and strings to find full lines for any given board size.
+When board size becomes two digits, my string method becomes problem. 
 
-@author: Ubeydullah SARK
-Student ID: 19456662
+There should be a better method to solve nonograms. 
 """
 
-#+First I will try to create fully fillings matrix for different sizes. We can get this number from use and print out the output
-#Make the board fill the fulls and nulls
 
 BLK='\u2588' # block character
 
@@ -124,22 +122,41 @@ def fillhalf(board, blocks, unfinished, size):
                     
     return board, unfinished
 
+def checkline(line, blocks, board, size):
+   ''' tmp=[int(i) for i in list(blocks[line])] 
+    if line< size:
+        for block in tmp:
+            i=0
+            tindex=tmp.index(block)
+            lt=len(tmp)
+            while i < size:
+                if board[line][i]==BLK:
+                    beginning=i
+                    while board[line][i]==BLK:
+                        i+=1
+                    end=i
+                    if end-beginning==block:
+                        if tindex==0:
+                            '''
+
 # This method will slowly fill the board
 def filler(size, blocks, total):
     fulls=fullfinder(int((size+1)/2),size)
     unfinished=[i for i in range(size*2)]
-    
+    print(fulls)
     board=[['_']*n for i in range(n)]
 
     board, total, unfinished=fillfull(board, fulls, blocks, total, unfinished)
     
     board, unfinished=fillhalf(board, blocks, unfinished, size)
     printing(board)
+    
     #main check while
-#    while total > 0:
+    while total > 0:
         
-#        for i in unfinished:
-            #check if it is already finished
+        for i in unfinished:
+            checkline(i, blocks, board, size)
+            total-=1
             
     
 
