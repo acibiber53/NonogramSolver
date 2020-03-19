@@ -36,7 +36,8 @@ class Lines():
         self.blockquantity=len(blocks)
         self.min=min(blocks)
         self.max=max(blocks)
-        self.mintot=sum(blocks)+len(blocks)-1 
+        self.mintot=sum(blocks)+len(blocks)-1
+        self.isblfinished=[0 for block in blocks]
         self.isfinished=0
         self.content=[0]*length
             
@@ -155,7 +156,7 @@ def solve_halfs(n, linelist, total):
 
 def start_counting(lineid, lastpoint):
     count=0
-    while linelist[lineid].content[lastpoint] == 1:
+    while lastpoint < n and linelist[lineid].content[lastpoint] == 1:
         count+=1
         lastpoint+=1
     return lastpoint, count
@@ -163,7 +164,7 @@ def start_counting(lineid, lastpoint):
 def add_x_to_both_end(lineid, pointer, block, n):
     if pointer < n and linelist[lineid].content[pointer]!= NOBLOCK :
         put_item(lineid, pointer, NOBLOCK, total)
-    if pointer-block-1>=0 and linelist[lineid].content[pointer]!= NOBLOCK :
+    if pointer-block-1>=0 and linelist[lineid].content[pointer-block-1]!= NOBLOCK :
         put_item(lineid, pointer-block-1, NOBLOCK, total)
 
 def x_out(lineid):
@@ -171,38 +172,48 @@ def x_out(lineid):
         if linelist[lineid].content[i] == EMPTY:
             put_item(lineid, i, NOBLOCK, total)
 
-#Gotta work more on this value check function. This is the most important part.
+def end_check(lineid, length):
+    curline=linelist[lineid]
+    if curline.blocks[-1] == length:
+        add_x_to_both_end(lineid, n, curline.blocks[-1], n)
+        curline.isblfinished[-1]=1
+
+def beg_check(lineid, length):
+    curline=linelist[lineid]
+    if curline.blocks[0] == length:
+        add_x_to_both_end(lineid, length, curline.blocks[0], n)
+        curline.isblfinished[0]=1
+
+#Getting somewhere. Gotta think about middle checks and multi-block checks
 def val_check(n, lineid):
-    isfin=1
+    curline=linelist[lineid]
     lastpoint=0
-    for block in linelist[lineid].blocks:
-        didyouenter=1
-        while lastpoint < n:
-            if linelist[lineid].content[lastpoint] == 1:
-                didyouenter=0
-                lastpoint, blcount=start_counting(lineid, lastpoint)
-                if blcount == block:
-                    add_x_to_both_end(lineid, lastpoint, block, n)
-                else:
-                    isfin = 0
-            else:
-                lastpoint+=1
-        if didyouenter==1:
-            isfin = 0
+    while lastpoint < n:
+        if curline.content[lastpoint]==1:
+            lastpoint, blcount = start_counting(lineid, lastpoint)
+            if lastpoint==n:
+                end_check(lineid, blcount)
+            if lastpoint-blcount==0:
+                beg_check(lineid, blcount)
         lastpoint+=1
            
-    if isfin==1:
-        linelist[lineid].isfinished=1
+    if 0 not in curline.isblfinished:
+        curline.isfinished=1
         x_out(lineid)
-    
+        
     return
 
 def solve_rest(n, linelist, total):
-    
+    alllines=2*n
     while total>0:
-        for i in range(n):
+        for i in range(alllines):
             if linelist[i].isfinished==0:
+                print(i)
                 val_check(n, i)
+                
+                print(total)
+                print_it()
+                input()
     return total
 
 def solve_it(n, linelist, total):
@@ -211,7 +222,9 @@ def solve_it(n, linelist, total):
     total = solve_fulls(n, linelist, total)
      
     total = solve_halfs(n, linelist, total)
-    
+    print(total)
+    print_it()
+    input()
     total = solve_rest(n, linelist, total)
     print(total)
     print_it()
