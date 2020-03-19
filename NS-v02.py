@@ -13,6 +13,7 @@ Main purpose here is to learn how to use classes, so nothing to lose. Let's begi
 """
 
 BLOCK=1
+EMPTY=0
 NOBLOCK=-1
 
 class Lines():
@@ -78,34 +79,141 @@ def print_it():
 
 # This function puts row and column values together
 # It helps me to eliminate the need for adding if/else to check iscolumn of each line
-def put_item(lineid, pointer, value):
+def put_item(lineid, pointer, value, total):
+    if value==BLOCK:
+        total-=1
     linelist[lineid].content[pointer]=value
     otherline=pointer+n if lineid<n else pointer
     otherpointer=(lineid+n)%n
     linelist[otherline].content[otherpointer]=value
+    return total
 
+def no_block_here(lineid, pointer, value):
+    if linelist[lineid].content[pointer]==value:
+        return False
+    return True
 
-def full_fill_line(lineid):
+def full_fill_line(lineid, total):
     lastpoint=0
     for block in linelist[lineid].blocks:
         i=0
         while i < block:
-            put_item(lineid, lastpoint, BLOCK)
+            if no_block_here(lineid, lastpoint, BLOCK):
+                total = put_item(lineid, lastpoint, BLOCK, total)
             lastpoint+=1
             i+=1
         if lastpoint!=n:
-            put_item(lineid, lastpoint, NOBLOCK)
+            put_item(lineid, lastpoint, NOBLOCK, total)
             lastpoint+=1
-            i+=1            
+            i+=1         
+    return total
 
 def solve_fulls(n, linelist, total):
     for i in range(2*n):
         if linelist[i].mintot==n:
-            full_fill_line(i)
+            total=full_fill_line(i, total)
+            linelist[i].isfinished=1
+            # print(total)
+            # print_it()
+            # input()
+    
+    return total
+
+# Main idea behind filling the half lines is this:
+# The difference between the minimum length of one line and the size n, gives us how many 
+# less a block will have pixels. Lets say size is 10 and we have 5 2 two pieces.
+# Minimum length needed is 5+2+1(space between)=8.
+# Difference from size is 10-8=2.
+# For the first piece 5-2(diff)=3. We will put 3 pixel for this one. And then jump one as space
+# After that we calculate the diff again. 2-2=0 this time. so we don't fill any pixel, but add 
+# it to our last pointer. Then add one more for space. This way it can fill all the halfs.
+def half_fill_line(lineid, total, difference):
+    lastpoint=0
+    for block in linelist[lineid].blocks:
+        lastpoint+=difference
+        diffb=block-difference
+        if diffb > 0:
+            i=0
+            while i < diffb:
+                if no_block_here(lineid, lastpoint, BLOCK):                    
+                    total=put_item(lineid, lastpoint, BLOCK, total)
+                lastpoint+=1
+                i+=1
+        lastpoint+=1   
+            
+    return total
+
+def solve_halfs(n, linelist, total):
+    for i in range(2*n):
+        if linelist[i].mintot>n/2 and linelist[i].max>(n-linelist[i].mintot): # first condition checks if there is possibility for half filling. Second one checks in that possibility can we fill any block. Maybe total length is long enough but pieces are all 2's and 1's.
+            total=half_fill_line(i, total, n-linelist[i].mintot)
+            # print(total)
+            # print_it()
+            # input()
+    
+    return total
+
+def start_counting(lineid, lastpoint):
+    count=0
+    while linelist[lineid].content[lastpoint] == 1:
+        count+=1
+        lastpoint+=1
+    return lastpoint, count
+
+def add_x_to_both_end(lineid, pointer, block, n):
+    if pointer < n and linelist[lineid].content[pointer]!= NOBLOCK :
+        put_item(lineid, pointer, NOBLOCK, total)
+    if pointer-block-1>=0 and linelist[lineid].content[pointer]!= NOBLOCK :
+        put_item(lineid, pointer-block-1, NOBLOCK, total)
+
+def x_out(lineid):
+    for i in range(n):
+        if linelist[lineid].content[i] == EMPTY:
+            put_item(lineid, i, NOBLOCK, total)
+
+#Gotta work more on this value check function. This is the most important part.
+def val_check(n, lineid):
+    isfin=1
+    lastpoint=0
+    for block in linelist[lineid].blocks:
+        didyouenter=1
+        while lastpoint < n:
+            if linelist[lineid].content[lastpoint] == 1:
+                didyouenter=0
+                lastpoint, blcount=start_counting(lineid, lastpoint)
+                if blcount == block:
+                    add_x_to_both_end(lineid, lastpoint, block, n)
+                else:
+                    isfin = 0
+            else:
+                lastpoint+=1
+        if didyouenter==1:
+            isfin = 0
+        lastpoint+=1
+           
+    if isfin==1:
+        linelist[lineid].isfinished=1
+        x_out(lineid)
+    
+    return
+
+def solve_rest(n, linelist, total):
+    
+    while total>0:
+        for i in range(n):
+            if linelist[i].isfinished==0:
+                val_check(n, i)
+    return total
 
 def solve_it(n, linelist, total):
     
-    solve_fulls(n, linelist, total)
+    
+    total = solve_fulls(n, linelist, total)
+     
+    total = solve_halfs(n, linelist, total)
+    
+    total = solve_rest(n, linelist, total)
+    print(total)
     print_it()
 
 if __name__=="__main__":
